@@ -76,7 +76,8 @@
 			const name = document.getElementById('name').value;
 			const phoneNumber = document.getElementById('phoneNumber').value;
 			const amount = document.getElementById('amount').value;
-			const subscriber = document.getElementById('subscriber').value;
+			const subscriber_value = document.getElementById('subscriber').value;
+			const subscriber = subscriber_value === 'yes';
 			const date = document.getElementById('date').value;
 			const time = document.getElementById('time').value;
 			const dateTime = date + ' ' + time;
@@ -90,6 +91,7 @@
 						name: name,
 						phone_number: phoneNumber,
 						amount: amount,
+						subscriber: subscriber,
 						date: dateTime
 					});
 					console.log("Document written with vehicle number: ", vehicleNumber);
@@ -136,21 +138,22 @@
 				const vehiclesRef = collection(db, "vehicles");
 				const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
 				const querySnapshot = await getDocs(q);
-				console.log("Query Snapshot:", querySnapshot);
 
 				if (!querySnapshot.empty) {
-					let resultsTable = '<table><tr><th>Customer Name</th><th>Phone Number</th></tr>';
-						querySnapshot.forEach((doc) => {
-							const vehicle = doc.data();
-							const vehicleDetails = `
-								<div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
-									<p><strong>Customer Name:</strong> ${vehicle.name}</p>
-									<p><strong>Phone Number:</strong> ${vehicle.phone_number}</p>
-									<p><strong>Vehicle Number:</strong> ${vehicle.vehicle_number}</p>
-								</div>
-							`;
-							searchResultsDiv.innerHTML += vehicleDetails;
-						});
+					
+					querySnapshot.forEach((doc) => {
+						const vehicle = doc.data();
+						const subscriberIcon = vehicle.subscriber ? '&#10003;' : '&#10007;';
+						const vehicleDetails = `
+							<div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
+								<p><strong>Customer Name:</strong> ${vehicle.name}</p>
+								<p><strong>Phone Number:</strong> ${vehicle.phone_number}</p>
+								<p><strong>Vehicle Number:</strong> ${vehicle.vehicle_number}</p>
+								<p><strong>Subscriber:</strong> ${subscriberIcon}</p>
+							</div>
+						`;
+						searchResultsDiv.innerHTML += vehicleDetails;
+					});
 				} else {
 					searchResultsDiv.innerHTML = 'No vehicle found with the provided number.';
 				}
