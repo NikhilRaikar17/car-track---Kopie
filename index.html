@@ -69,7 +69,7 @@
 		// Make db available to the window object
 		window.db = db;
 		
-		document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+		document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
 			e.preventDefault();
 
 			const vehicleNumber = document.getElementById('vehicleNumber').value;
@@ -83,10 +83,13 @@
 			const dateTime = date + ' ' + time;
 			const messageDiv = document.getElementById('message');
 
-			
-			if (vehicleNumber) {
-				try {
-					const docRef = addDoc(collection(window.db, "vehicles"), {
+			const vehiclesRef = collection(db, "vehicles");
+			const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
+			try {
+				const querySnapshot = await getDocs(q);
+				if (querySnapshot.empty) {
+					
+					const docRef = await addDoc(collection(window.db, "vehicles"), {
 						vehicle_number: vehicleNumber,
 						name: name,
 						phone_number: phoneNumber,
@@ -96,11 +99,12 @@
 					});
 					console.log("Document written with vehicle number: ", vehicleNumber);
 					messageDiv.textContent = 'Vehicle Recorded Successfully!';
+					messageDiv.style.color = 'green';
 					document.getElementById('vehicleForm').reset();
 					setTimeout(function() {
 						messageDiv.textContent = '';
 					}, 2000);
-				} catch (error) {
+				} else {
 					console.error("Error recording vehicle: ", error);
 					messageDiv.textContent = 'Error recording vehicle: ' + error.message;
 					messageDiv.style.color = 'red';
@@ -108,8 +112,8 @@
 						messageDiv.textContent = '';
 					}, 2000);
 				}
-			} else {
-				messageDiv.textContent = 'Please enter all required information.';
+			} catch (error) {
+				messageDiv.textContent = 'Vehicle number already exists in database';
 				messageDiv.style.color = 'red';
 				setTimeout(function() {
 						messageDiv.textContent = '';
