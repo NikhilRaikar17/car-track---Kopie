@@ -19,11 +19,11 @@
 			<input type="text" id="vehicleNumber" placeholder="Enter Vehicle Number">
 			<input type="tel" id="phoneNumber" placeholder="Enter Phone Number">
 			<input type="text" id="amount" placeholder="Enter amount">
-			<label for="subscriber">Subscriber:</label>
-                <select id="subscriber">
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                </select>
+			<select id="subscriber" name="subscriber" required>
+				<option value="" selected disabled>Subscribed?</option>
+				<option value="yes">Yes</option>
+				<option value="no">No</option>
+			</select>
 			<input type="date" id="date" placeholder="Select Date">
 			<input type="time" id="time" placeholder="Select Time">
 			<button type="submit" id="recordVehicleButton">Record Vehicle</button>
