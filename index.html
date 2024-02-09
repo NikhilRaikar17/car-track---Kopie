@@ -14,6 +14,7 @@
 	<div class="form-container">
 		<h2> R1-CarCare </h2> 
 		<h2> Vehicle Tracker </h2>
+		<div id="todayVehicleCount" style="margin-bottom: 15px;">Today's recorded vehicles: 0</div>
 		<form id="vehicleForm">
 			<input type="text" id="name" placeholder="Enter Name">
 			<input type="text" id="vehicleNumber" placeholder="Enter Vehicle Number">
@@ -69,58 +70,92 @@
 		// Make db available to the window object
 		window.db = db;
 		
-		document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
-			e.preventDefault();
+		document.addEventListener('DOMContentLoaded', function() {
+			updateVehicleCountDisplay();
 
-			const vehicleNumber = document.getElementById('vehicleNumber').value;
-			const name = document.getElementById('name').value;
-			const phoneNumber = document.getElementById('phoneNumber').value;
-			const amount = document.getElementById('amount').value;
-			const subscriber_value = document.getElementById('subscriber').value;
-			const subscriber = subscriber_value === 'yes';
-			const date = document.getElementById('date').value;
-			const time = document.getElementById('time').value;
-			const dateTime = date + ' ' + time;
-			const messageDiv = document.getElementById('message');
+			document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
+				e.preventDefault();
 
-			const vehiclesRef = collection(db, "vehicles");
-			const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
-			try {
-				const querySnapshot = await getDocs(q);
-				if (querySnapshot.empty) {
-					
-					const docRef = await addDoc(collection(window.db, "vehicles"), {
-						vehicle_number: vehicleNumber,
-						name: name,
-						phone_number: phoneNumber,
-						amount: amount,
-						subscriber: subscriber,
-						date: dateTime
-					});
-					console.log("Document written with vehicle number: ", vehicleNumber);
-					messageDiv.textContent = 'Vehicle Recorded Successfully!';
-					messageDiv.style.color = 'green';
-					document.getElementById('vehicleForm').reset();
-					setTimeout(function() {
-						messageDiv.textContent = '';
-					}, 2000);
-				} else {
-					console.error("Error recording vehicle: ", error);
-					messageDiv.textContent = 'Error recording vehicle: ' + error.message;
+				const vehicleNumber = document.getElementById('vehicleNumber').value;
+				const name = document.getElementById('name').value;
+				const phoneNumber = document.getElementById('phoneNumber').value;
+				const amount = document.getElementById('amount').value;
+				const subscriber_value = document.getElementById('subscriber').value;
+				const subscriber = subscriber_value === 'yes';
+				const date = document.getElementById('date').value;
+				const time = document.getElementById('time').value;
+				const dateTime = date + ' ' + time;
+				const messageDiv = document.getElementById('message');
+
+				const vehiclesRef = collection(db, "vehicles");
+				const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
+				try {
+					const querySnapshot = await getDocs(q);
+					if (querySnapshot.empty) {
+						
+						const docRef = await addDoc(collection(window.db, "vehicles"), {
+							vehicle_number: vehicleNumber,
+							name: name,
+							phone_number: phoneNumber,
+							amount: amount,
+							subscriber: subscriber,
+							date: dateTime
+						});
+						console.log("Document written with vehicle number: ", vehicleNumber);
+						messageDiv.textContent = 'Vehicle Recorded Successfully!';
+						messageDiv.style.color = 'green';
+						document.getElementById('vehicleForm').reset();
+						setTimeout(function() {
+							messageDiv.textContent = '';
+						}, 2000);
+						incrementVehicleCount();
+					} else {
+						console.error("Error recording vehicle: ", error);
+						messageDiv.textContent = 'Error recording vehicle: ' + error.message;
+						messageDiv.style.color = 'red';
+						setTimeout(function() {
+							messageDiv.textContent = '';
+						}, 2000);
+					}
+				} catch (error) {
+					messageDiv.textContent = 'Vehicle number already exists in database';
 					messageDiv.style.color = 'red';
 					setTimeout(function() {
-						messageDiv.textContent = '';
-					}, 2000);
+							messageDiv.textContent = '';
+						}, 2000);
 				}
-			} catch (error) {
-				messageDiv.textContent = 'Vehicle number already exists in database';
-				messageDiv.style.color = 'red';
-				setTimeout(function() {
-						messageDiv.textContent = '';
-					}, 2000);
-			}
+
+			});
 
 		});
+
+		function getTodayDateString() {
+			const today = new Date();
+			return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+		}
+
+		function updateVehicleCountDisplay() {
+			const today = getTodayDateString();
+			const recordedDate = localStorage.getItem('recordedDate');
+			let count = parseInt(localStorage.getItem('vehicleCount'), 10);
+
+			if (!recordedDate || recordedDate !== today || isNaN(count)) {
+				// If it's a new day or the count isn't set, reset the count
+				count = 0;
+				localStorage.setItem('recordedDate', today);
+				localStorage.setItem('vehicleCount', count);
+			}
+
+			document.getElementById('todayVehicleCount').textContent = `Today's recorded vehicles: ${count}`;
+		}
+
+		function incrementVehicleCount() {
+			const count = parseInt(localStorage.getItem('vehicleCount'), 10) + 1;
+			localStorage.setItem('vehicleCount', count);
+			document.getElementById('todayVehicleCount').textContent = `Today's recorded vehicles: ${count}`;
+		}
+
+
 
 		document.getElementById('searchPageButton').addEventListener('click', () => {
             document.getElementById('searchPageButton').style.display = 'none';
@@ -154,6 +189,7 @@
 								<p><strong>Phone Number:</strong> ${vehicle.phone_number}</p>
 								<p><strong>Vehicle Number:</strong> ${vehicle.vehicle_number}</p>
 								<p><strong>Subscriber:</strong> ${subscriberIcon}</p>
+								<p><strong>Last washed on:</strong> ${vehicle.date}</p>
 							</div>
 						`;
 						searchResultsDiv.innerHTML += vehicleDetails;
