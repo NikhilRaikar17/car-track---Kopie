@@ -5,45 +5,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R1-CarCare</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
 	<link rel="manifest" href="manifest.json">
 </head>	
 
 <body>
-	
-	<div class="form-container">
-		<h2> R1-CarCare </h2> 
-		<h2> Vehicle Tracker </h2>
-		<div id="todayVehicleCount" style="margin-bottom: 15px;">Today's recorded vehicles: 0</div>
-		<form id="vehicleForm">
-			<input type="text" id="name" placeholder="Enter Name">
-			<input type="text" id="vehicleNumber" placeholder="Enter Vehicle Number">
-			<input type="tel" id="phoneNumber" placeholder="Enter Phone Number">
-			<input type="text" id="amount" placeholder="Enter amount">
-			<select id="subscriber" name="subscriber" required>
-				<option value="" selected disabled>Subscribed?</option>
-				<option value="yes">Yes</option>
-				<option value="no">No</option>
-			</select>
-			<input type="date" id="date" placeholder="Select Date">
-			<input type="time" id="time" placeholder="Select Time">
-			<button type="submit" id="recordVehicleButton">Record Vehicle</button>
-		</form>
-		
-		<button id="searchPageButton" type="button" style="margin-top: 10px;">Search Vehicle</button>
+	<div class="container mt-4">
 
-		<div id="searchVehicleForm" style="display:none;">
-            <input type="text" id="searchVehicleNumber" placeholder="Enter Vehicle Number">
-			<div id="searchResults" style="margin-top: 20px;"></div>
-            <button id="searchSubmitButton" type="button" style="margin-top: 10px;">Submit</button>
-            <button id="goBackButton" type="button" style="margin-top: 10px;">Go Back</button>
-            
-        </div>
-		
-		<button id="installButton" style="display: none;">Install App</button>
-		<div id="message" style="margin-top: 10px; color: green;"></div>
-	</div>
+		<div class="text-center mb-4">
+			<h2>R1-CarCare</h2>
+			<h2>Vehicle Tracker</h2>
+		</div>
 	
+		<div id="todayVehicleCount" style="margin-bottom: 15px;">Today's recorded vehicles: 0</div>
+	
+		<form id="vehicleForm">
+			<div class="mb-3">
+				<input type="text" id="name" class="form-control" placeholder="Enter Name">
+			</div>
+			<div class="mb-3">
+				<input type="text" id="vehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
+			</div>
+			<div class="mb-3">
+				<input type="tel" id="phoneNumber" class="form-control" placeholder="Enter Phone Number">
+			</div>
+			<div class="mb-3">
+				<input type="text" id="amount" class="form-control" placeholder="Enter amount">
+			</div>
+			<div class="mb-3">
+				<select id="subscriber" name="subscriber" class="form-select" required>
+					<option value="" selected disabled>Subscribed?</option>
+					<option value="yes">Yes</option>
+					<option value="no">No</option>
+				</select>
+			</div>
+		
+			<div class="mb-3" id="washTypePlaceholder"></div>
+
+			<div class="mb-3">
+				<input type="date" id="date" class="form-control" placeholder="Select Date">
+			</div>
+			<div class="mb-3"><input type="time" id="time" class="form-control" placeholder="Select Time"></div>
+
+			
+			<button type="submit" id="recordVehicleButton" class="btn btn-primary">Record Vehicle</button>
+		</form>
+			
+		<button id="searchPageButton" type="button" class="btn btn-secondary mt-3" >Search Vehicle</button>
+	
+		<div id="searchVehicleForm" style="display:none;" class="mt-3">
+			<input type="text" id="searchVehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
+			<div id="searchResults" class="mt-3"></div>
+			<button id="searchSubmitButton" type="button" class="btn btn-primary mt-3">Submit</button>
+			<button id="goBackButton" type="button" class="btn btn-secondary mt-3">Go Back</button>	
+		</div>
+		
+		<button id="installButton" style="display: none;" class="btn btn-info mt-3">Install App</button>
+		<div id="message" class="mt-3 text-success"></div>
+		
+	</div>
+
+	<!-- Include Bootstrap Bundle with Popper -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
 	<script type="module">
 		import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js'
 
@@ -73,6 +98,44 @@
 		document.addEventListener('DOMContentLoaded', function() {
 			updateVehicleCountDisplay();
 
+			const subscriberSelect = document.getElementById('subscriber');
+			const washTypePlaceholder = document.getElementById('washTypePlaceholder');
+
+			subscriberSelect.addEventListener('change', function() {
+				// Remove existing wash type select box if it exists
+				const existingWashTypeSelect = document.getElementById('washType');
+				if (existingWashTypeSelect) existingWashTypeSelect.remove();
+
+				// Dynamically create and add the wash type select box if "Yes" is selected
+				if (subscriberSelect.value === 'yes') { 
+					const washTypeSelect = document.createElement('select');
+					washTypeSelect.id = 'washType';
+					washTypeSelect.name = 'washType';
+					washTypeSelect.className= "form-select";
+
+					const options = [
+						{value: '', text: 'Select Wash Type'},
+						{value: 'quick', text: 'Quick Wash'},
+						{value: 'normal', text: 'Normal Wash'},
+					];
+
+					// Create and append options to the select element
+					options.forEach(opt => {
+						const optionElement = document.createElement('option');
+						optionElement.value = opt.value;
+						optionElement.textContent = opt.text;
+						washTypeSelect.appendChild(optionElement);
+					});
+
+					// Append the newly created select box to the placeholder span
+					washTypePlaceholder.appendChild(washTypeSelect);
+
+				} else if (subscriberSelect.value === 'no') {
+					// If "No" is selected, ensure any existing select box is removed
+					// This step is already covered by removing the select at the start
+				}
+			});
+
 			document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
 				e.preventDefault();
 
@@ -81,7 +144,7 @@
 				const phoneNumber = document.getElementById('phoneNumber').value;
 				const amount = document.getElementById('amount').value;
 				const subscriber_value = document.getElementById('subscriber').value;
-				const subscriber = subscriber_value === 'yes';
+				const subscriber = subscriber_value === 'yes';1
 				const date = document.getElementById('date').value;
 				const time = document.getElementById('time').value;
 				const dateTime = date + ' ' + time;
