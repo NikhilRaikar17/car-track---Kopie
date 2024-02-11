@@ -45,12 +45,21 @@
 				<input type="date" id="date" class="form-control" placeholder="Select Date">
 			</div>
 			<div class="mb-3"><input type="time" id="time" class="form-control" placeholder="Select Time"></div>
-
 			
 			<button type="submit" id="recordVehicleButton" class="btn btn-primary">Record Vehicle</button>
 		</form>
-			
-		<button id="searchPageButton" type="button" class="btn btn-secondary mt-3" >Search Vehicle</button>
+		
+		<div>
+			<button id="searchPageButton" type="button" class="btn btn-secondary mt-3" >Search Vehicle</button>
+			<button id="todaysCountButton" type="button" class="btn btn-info mt-3">Today's Count</button>
+		</div>
+
+
+		<div id="todaysRecords" style="display:none;">
+			<h3>Today's Records</h3>
+			<div id="recordsList" class="mt-3"></div>
+			<button id="backFromTodaysRecordsButton" type="button" class="btn btn-secondary mt-3">Go Back</button>
+		</div>
 	
 		<div id="searchVehicleForm" style="display:none;" class="mt-3">
 			<input type="text" id="searchVehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
@@ -192,14 +201,13 @@
 		document.getElementById('searchPageButton').addEventListener('click', () => {
             document.getElementById('searchPageButton').style.display = 'none';
             document.getElementById('vehicleForm').style.display = 'none';
+			document.getElementById('todaysCountButton').style.display = 'none';
             document.getElementById('searchVehicleForm').style.display = 'block';
         });
 
 		// search code to search vehicles
 		document.getElementById('searchSubmitButton').addEventListener('click', async () => {
-			console.log("I came here!")
 			const vehicleNumber = document.getElementById('searchVehicleNumber').value.trim();
-			console.log(vehicleNumber)
 			const searchResultsDiv = document.getElementById('searchResults');
 
 			// Clear previous search results
@@ -211,21 +219,30 @@
 				const querySnapshot = await getDocs(q);
 
 				if (!querySnapshot.empty) {
-					
+					// Create the table
+					const table = document.createElement('table');
+					table.className = 'table table-bordered'; // Bootstrap classes for styling
+
+					// Transpose: Each detail of the vehicle becomes a row instead of a column
 					querySnapshot.forEach((doc) => {
 						const vehicle = doc.data();
-						const subscriberIcon = vehicle.subscriber ? '&#10003;' : '&#10007;';
-						const vehicleDetails = `
-							<div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ddd;">
-								<p><strong>Customer Name:</strong> ${vehicle.name}</p>
-								<p><strong>Phone Number:</strong> ${vehicle.phone_number}</p>
-								<p><strong>Vehicle Number:</strong> ${vehicle.vehicle_number}</p>
-								<p><strong>Subscriber:</strong> ${subscriberIcon}</p>
-								<p><strong>Last washed on:</strong> ${vehicle.date}</p>
-							</div>
-						`;
-						searchResultsDiv.innerHTML += vehicleDetails;
+						const details = [
+							['Customer Name', vehicle.name],
+							['Phone Number', vehicle.phone_number],
+							['Vehicle Number', vehicle.vehicle_number],
+							['Subscriber', vehicle.subscriber ? 'Yes' : 'No'],
+							['Last Washed On', vehicle.date]
+						];
+
+						details.forEach(detail => {
+							const row = table.insertRow();
+							const cellKey = row.insertCell();
+							const cellValue = row.insertCell();
+							cellKey.textContent = detail[0];
+							cellValue.textContent = detail[1];
+						});
 					});
+					searchResultsDiv.appendChild(table);
 				} else {
 					searchResultsDiv.innerHTML = 'No vehicle found with the provided number.';
 				}
@@ -238,10 +255,8 @@
 
 		document.getElementById('goBackButton').addEventListener('click', () => {
             document.getElementById('vehicleForm').style.display = 'block';
-
 			document.getElementById('searchPageButton').style.display = 'inline-block';
-
-            
+			document.getElementById('todaysCountButton').style.display = 'block';
 			document.getElementById('searchVehicleForm').style.display = 'none';
 			
 			// Clear any search results
@@ -250,6 +265,82 @@
 			// Also, make sure the search vehicle input is cleared to reset the form completely
 			document.getElementById('searchVehicleNumber').value = '';
         });
+
+		document.getElementById('todaysCountButton').addEventListener('click', async () => {
+			const recordsListDiv = document.getElementById('recordsList');
+			recordsListDiv.innerHTML = ''; // Clear previous content
+
+			// Create a table
+			const table = document.createElement('table');
+			table.className = 'table table-striped'; // Bootstrap class for styling
+			const thead = document.createElement('thead');
+			const tbody = document.createElement('tbody');
+			table.appendChild(thead);
+			table.appendChild(tbody);
+
+			// Table headers
+			const headerRow = document.createElement('tr');
+			['No.', 'Vehicle Number', 'Name', 'Phone Number', 'Date'].forEach(text => {
+				const headerCell = document.createElement('th');
+				headerCell.textContent = text;
+				headerRow.appendChild(headerCell);
+			});
+			thead.appendChild(headerRow);
+
+			const today = new Date();
+			const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString().split('T')[0];
+			const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString().split('T')[0];
+
+			const vehiclesRef = collection(window.db, "vehicles");
+			const q = query(vehiclesRef, where("date", ">=", startOfDay), where("date", "<=", endOfDay));
+
+			try {
+				const querySnapshot = await getDocs(q);
+				let count = 0;
+				let totalIncome = 0;
+				querySnapshot.forEach(doc => {
+					count++;
+					const data = doc.data();
+					const row = tbody.insertRow();
+					const numberCell = row.insertCell();
+					const vehicleNumberCell = row.insertCell();
+					const nameCell = row.insertCell();
+					const phoneCell = row.insertCell();
+					const dateTimeCell = row.insertCell();
+
+					numberCell.textContent = count;
+					vehicleNumberCell.textContent = data.vehicle_number;
+					nameCell.textContent = data.name;
+					phoneCell.textContent = data.phone_number;
+					dateTimeCell.textContent = data.date;
+				});
+
+				// Append the table to the recordsListDiv
+				recordsListDiv.appendChild(table);
+
+				// Display the final count
+				const countDisplay = document.createElement('div');
+				countDisplay.className = 'mt-3'; // Bootstrap margin top class
+				countDisplay.textContent = `Total records for today: ${count}`;
+				recordsListDiv.appendChild(countDisplay);
+
+				// Show the records list and hide the form
+				document.getElementById('vehicleForm').style.display = 'none';
+				document.getElementById('searchPageButton').style.display = 'none';
+				document.getElementById('todaysCountButton').style.display = 'none';
+				document.getElementById('todaysRecords').style.display = 'block';
+			} catch (error) {
+				console.error("Error fetching documents: ", error);
+			}
+		});
+
+		document.getElementById('backFromTodaysRecordsButton').addEventListener('click', () => {
+			// Hide the records list and show the form
+			document.getElementById('vehicleForm').style.display = 'block';
+			document.getElementById('searchPageButton').style.display = 'block';
+			document.getElementById('todaysCountButton').style.display = 'block';
+			document.getElementById('todaysRecords').style.display = 'none';
+		});
 
 
 	</script>
