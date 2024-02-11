@@ -18,8 +18,6 @@
 			<h2>Vehicle Tracker</h2>
 		</div>
 	
-		<div id="todayVehicleCount" style="margin-bottom: 15px;">Today's recorded vehicles: 0</div>
-	
 		<form id="vehicleForm">
 			<div class="mb-3">
 				<input type="text" id="name" class="form-control" placeholder="Enter Name">
@@ -96,7 +94,6 @@
 		window.db = db;
 		
 		document.addEventListener('DOMContentLoaded', function() {
-			updateVehicleCountDisplay();
 
 			const subscriberSelect = document.getElementById('subscriber');
 			const washTypePlaceholder = document.getElementById('washTypePlaceholder');
@@ -139,85 +136,57 @@
 			document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
 				e.preventDefault();
 
+				// Extract form values
 				const vehicleNumber = document.getElementById('vehicleNumber').value;
 				const name = document.getElementById('name').value;
 				const phoneNumber = document.getElementById('phoneNumber').value;
 				const amount = document.getElementById('amount').value;
-				const subscriber_value = document.getElementById('subscriber').value;
-				const subscriber = subscriber_value === 'yes';1
+				const subscriber = document.getElementById('subscriber').value === 'yes';
 				const date = document.getElementById('date').value;
 				const time = document.getElementById('time').value;
-				const dateTime = date + ' ' + time;
+				const dateTime = `${date} ${time}`;
+
 				const messageDiv = document.getElementById('message');
 
-				const vehiclesRef = collection(db, "vehicles");
+				// Define Firestore reference
+				const vehiclesRef = collection(window.db, "vehicles");
 				const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
+
 				try {
 					const querySnapshot = await getDocs(q);
 					if (querySnapshot.empty) {
-						
-						const docRef = await addDoc(collection(window.db, "vehicles"), {
+						// Record doesn't exist, proceed to add
+						await addDoc(vehiclesRef, {
 							vehicle_number: vehicleNumber,
 							name: name,
 							phone_number: phoneNumber,
 							amount: amount,
 							subscriber: subscriber,
-							date: dateTime
+							date_time: dateTime
 						});
-						console.log("Document written with vehicle number: ", vehicleNumber);
+						console.log("Document written with ID: ", vehicleNumber);
 						messageDiv.textContent = 'Vehicle Recorded Successfully!';
 						messageDiv.style.color = 'green';
-						document.getElementById('vehicleForm').reset();
-						setTimeout(function() {
-							messageDiv.textContent = '';
-						}, 2000);
-						incrementVehicleCount();
 					} else {
-						console.error("Error recording vehicle: ", error);
-						messageDiv.textContent = 'Error recording vehicle: ' + error.message;
+						// Vehicle number exists
+						messageDiv.textContent = 'Vehicle number already exists in database.';
 						messageDiv.style.color = 'red';
-						setTimeout(function() {
-							messageDiv.textContent = '';
-						}, 2000);
 					}
 				} catch (error) {
-					messageDiv.textContent = 'Vehicle number already exists in database';
+					console.error("Error adding document: ", error);
+					messageDiv.textContent = 'Error recording vehicle: ' + error.message;
 					messageDiv.style.color = 'red';
-					setTimeout(function() {
-							messageDiv.textContent = '';
-						}, 2000);
 				}
 
+				// Reset form and clear message after 2 seconds
+				document.getElementById('vehicleForm').reset();
+				setTimeout(() => {
+					messageDiv.textContent = '';
+				}, 2000);
 			});
 
+
 		});
-
-		function getTodayDateString() {
-			const today = new Date();
-			return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-		}
-
-		function updateVehicleCountDisplay() {
-			const today = getTodayDateString();
-			const recordedDate = localStorage.getItem('recordedDate');
-			let count = parseInt(localStorage.getItem('vehicleCount'), 10);
-
-			if (!recordedDate || recordedDate !== today || isNaN(count)) {
-				// If it's a new day or the count isn't set, reset the count
-				count = 0;
-				localStorage.setItem('recordedDate', today);
-				localStorage.setItem('vehicleCount', count);
-			}
-
-			document.getElementById('todayVehicleCount').textContent = `Today's recorded vehicles: ${count}`;
-		}
-
-		function incrementVehicleCount() {
-			const count = parseInt(localStorage.getItem('vehicleCount'), 10) + 1;
-			localStorage.setItem('vehicleCount', count);
-			document.getElementById('todayVehicleCount').textContent = `Today's recorded vehicles: ${count}`;
-		}
-
 
 
 		document.getElementById('searchPageButton').addEventListener('click', () => {
