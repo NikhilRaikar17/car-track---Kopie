@@ -55,7 +55,14 @@
 						</select>
 					</div>
 				
-					<div class="mb-3" id="washTypePlaceholder"></div>
+					<div id="subscriptionDetails" style="display:none;">
+						<div class="mb-3">
+							<input type="number" id="quickWashes" name="quickWashes" class="form-control" placeholder="Enter remaining Quick Washes">
+						</div>
+						<div class="mb-3">
+							<input type="number" id="normalWashes" name="normalWashes" class="form-control" placeholder="Enter remaining Normal Washes">
+						</div>
+					</div>
 		
 					<div class="mb-3">
 						<input type="date" id="date" class="form-control" placeholder="Select Date">
@@ -131,42 +138,6 @@
 		document.addEventListener('DOMContentLoaded', function() {
 
 			const subscriberSelect = document.getElementById('subscriber');
-			const washTypePlaceholder = document.getElementById('washTypePlaceholder');
-
-			subscriberSelect.addEventListener('change', function() {
-				// Remove existing wash type select box if it exists
-				const existingWashTypeSelect = document.getElementById('washType');
-				if (existingWashTypeSelect) existingWashTypeSelect.remove();
-
-				// Dynamically create and add the wash type select box if "Yes" is selected
-				if (subscriberSelect.value === 'yes') { 
-					const washTypeSelect = document.createElement('select');
-					washTypeSelect.id = 'washType';
-					washTypeSelect.name = 'washType';
-					washTypeSelect.className= "form-select";
-
-					const options = [
-						{value: '', text: 'Select Wash Type'},
-						{value: 'quick', text: 'Quick Wash'},
-						{value: 'normal', text: 'Normal Wash'},
-					];
-
-					// Create and append options to the select element
-					options.forEach(opt => {
-						const optionElement = document.createElement('option');
-						optionElement.value = opt.value;
-						optionElement.textContent = opt.text;
-						washTypeSelect.appendChild(optionElement);
-					});
-
-					// Append the newly created select box to the placeholder span
-					washTypePlaceholder.appendChild(washTypeSelect);
-
-				} else if (subscriberSelect.value === 'no') {
-					// If "No" is selected, ensure any existing select box is removed
-					// This step is already covered by removing the select at the start
-				}
-			});
 
 			document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
 				e.preventDefault();
@@ -180,6 +151,8 @@
 				const date = document.getElementById('date').value;
 				const time = document.getElementById('time').value;
 				const dateTime = `${date} ${time}`;
+				const quickWashes = subscriber ? document.getElementById('quickWashes').value : 0;
+				const normalWashes = subscriber ? document.getElementById('normalWashes').value : 0;
 
 				const messageDiv = document.getElementById('message');
 
@@ -197,7 +170,9 @@
 							phone_number: phoneNumber,
 							amount: amount,
 							subscriber: subscriber,
-							date: dateTime
+							date: dateTime,
+							quickWashes: quickWashes,
+							normalWashes: normalWashes,
 						});
 						console.log("Document written with ID: ", vehicleNumber);
 						messageDiv.textContent = 'Vehicle Recorded Successfully!';
@@ -221,6 +196,15 @@
 			});
 
 
+		});
+
+		document.getElementById('subscriber').addEventListener('change', function() {
+			const subscriptionDetails = document.getElementById('subscriptionDetails');
+			if (this.value === 'yes') {
+				subscriptionDetails.style.display = 'block';
+			} else {
+				subscriptionDetails.style.display = 'none';
+			}
 		});
 
 		// search code to search vehicles
@@ -252,33 +236,32 @@
 					const tbody = document.createElement('tbody');
 
 					// Define table headers
-					const headers = ['Name', 'Vehicle Number', 'Phone Number', 'subscriber', 'Last Washed'];
-					const tr = document.createElement('tr');
-					headers.forEach(headerText => {
-						const th = document.createElement('th');
-						th.textContent = headerText;
-						tr.appendChild(th);
-					});
-					thead.appendChild(tr);
-					table.appendChild(thead);
+					const headers = ['Name', 'Vehicle Number', 'Phone Number', 'Subscriber', 'Last Washed', 'Remaining Quick washe', 'Remaining normal wash' ];
+					const dataAttributes = ['name', 'vehicle_number', 'phone_number', 'subscriber', 'date', 'quickWashes', 'normalWashes'];
 
-					// Fill table body with query results
-					querySnapshot.forEach(doc => {
-						const vehicle = doc.data();
-						const row = document.createElement('tr');
-						const cellData = [
-							vehicle.name || 'N/A',
-							vehicle.vehicle_number || 'N/A',
-							vehicle.phone_number || 'N/A',
-							vehicle.subscriber ? 'Yes' : 'No',
-							vehicle.date || 'N/A'
-						];
-						cellData.forEach(text => {
-							const td = document.createElement('td');
-							td.textContent = text;
-							row.appendChild(td);
+					// Create table structure
+					table.className = 'table table-bordered'; // Bootstrap classes for styling
+					table.appendChild(thead);
+					table.appendChild(tbody);
+
+					// Transpose: Creating a row for each header
+					headers.forEach((header, index) => {
+						const row = tbody.insertRow();
+						const headerCell = document.createElement('th');
+						headerCell.textContent = header;
+						row.appendChild(headerCell);
+
+						querySnapshot.forEach(doc => {
+							const vehicle = doc.data();
+							const cell = document.createElement('td');
+							// Handling the 'subscriber' field to display 'Yes' or 'No'
+							if (dataAttributes[index] === 'subscriber') {
+								cell.textContent = vehicle[dataAttributes[index]] ? 'Yes' : 'No';
+							} else {
+								cell.textContent = vehicle[dataAttributes[index]] || 'N/A';
+							}
+							row.appendChild(cell);
 						});
-						tbody.appendChild(row);
 					});
 					table.appendChild(tbody);
 					searchResultsDiv.appendChild(table);
