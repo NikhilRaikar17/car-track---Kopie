@@ -17,56 +17,71 @@
 			<h2>R1-CarCare</h2>
 			<h2>Vehicle Tracker</h2>
 		</div>
-	
-		<form id="vehicleForm">
-			<div class="mb-3">
-				<input type="text" id="name" class="form-control" placeholder="Enter Name">
-			</div>
-			<div class="mb-3">
-				<input type="text" id="vehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
-			</div>
-			<div class="mb-3">
-				<input type="tel" id="phoneNumber" class="form-control" placeholder="Enter Phone Number">
-			</div>
-			<div class="mb-3">
-				<input type="text" id="amount" class="form-control" placeholder="Enter amount">
-			</div>
-			<div class="mb-3">
-				<select id="subscriber" name="subscriber" class="form-select" required>
-					<option value="" selected disabled>Subscribed?</option>
-					<option value="yes">Yes</option>
-					<option value="no">No</option>
-				</select>
-			</div>
+
+		<ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="vehicleFormTab-tab" data-bs-toggle="tab" data-bs-target="#vehicleFormTab" type="button" role="tab" aria-controls="vehicleForm" aria-selected="true">Vehicle Form</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="searchVehicleTab-tab" data-bs-toggle="tab" data-bs-target="#searchVehicleTab" type="button" role="tab" aria-controls="searchVehicle" aria-selected="false">Search Vehicle</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="todaysCountTab-tab" data-bs-toggle="tab" data-bs-target="#todaysCountTab" type="button" role="tab" aria-controls="todaysCount" aria-selected="false">Today's Count</button>
+            </li>
+        </ul>
+
+		<div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="vehicleFormTab" role="tabpanel" aria-labelledby="vehicleFormTab-tab">
+                <!-- Vehicle Form Goes Here -->
+                <form id="vehicleForm">
+					<div class="mb-3">
+						<input type="text" id="name" class="form-control" placeholder="Enter Name">
+					</div>
+					<div class="mb-3">
+						<input type="text" id="vehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
+					</div>
+					<div class="mb-3">
+						<input type="tel" id="phoneNumber" class="form-control" placeholder="Enter Phone Number">
+					</div>
+					<div class="mb-3">
+						<input type="text" id="amount" class="form-control" placeholder="Enter amount">
+					</div>
+					<div class="mb-3">
+						<select id="subscriber" name="subscriber" class="form-select" required>
+							<option value="" selected disabled>Subscribed?</option>
+							<option value="yes">Yes</option>
+							<option value="no">No</option>
+						</select>
+					</div>
+				
+					<div class="mb-3" id="washTypePlaceholder"></div>
 		
-			<div class="mb-3" id="washTypePlaceholder"></div>
+					<div class="mb-3">
+						<input type="date" id="date" class="form-control" placeholder="Select Date">
+					</div>
+					<div class="mb-3"><input type="time" id="time" class="form-control" placeholder="Select Time"></div>
+					
+					<button type="submit" id="recordVehicleButton" class="btn btn-primary">Record Vehicle</button>
+				</form>
+            </div>
 
-			<div class="mb-3">
-				<input type="date" id="date" class="form-control" placeholder="Select Date">
-			</div>
-			<div class="mb-3"><input type="time" id="time" class="form-control" placeholder="Select Time"></div>
-			
-			<button type="submit" id="recordVehicleButton" class="btn btn-primary">Record Vehicle</button>
-		</form>
-		
-		<div>
-			<button id="searchPageButton" type="button" class="btn btn-secondary mt-3" >Search Vehicle</button>
-			<button id="todaysCountButton" type="button" class="btn btn-info mt-3">Today's Count</button>
-		</div>
+			<div class="tab-pane fade" id="searchVehicleTab" role="tabpanel" aria-labelledby="searchVehicleTab-tab">
+                <!-- Search Vehicle Content Goes Here -->
+                <div class="mt-3" id="searchVehicleForm">
+                    <input type="text" id="searchVehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
+                    <div id="searchResults" class="mt-3"></div>
+                    <button id="searchSubmitButton" type="button" class="btn btn-primary mt-3">Submit</button>
+                </div>
+            </div>
 
+			<div class="tab-pane fade" id="todaysCountTab" role="tabpanel" aria-labelledby="todaysCountTab-tab">
 
-		<div id="todaysRecords" style="display:none;">
-			<h3>Today's Records</h3>
-			<div id="recordsList" class="mt-3"></div>
-			<button id="backFromTodaysRecordsButton" type="button" class="btn btn-secondary mt-3">Go Back</button>
-		</div>
-	
-		<div id="searchVehicleForm" style="display:none;" class="mt-3">
-			<input type="text" id="searchVehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
-			<div id="searchResults" class="mt-3"></div>
-			<button id="searchSubmitButton" type="button" class="btn btn-primary mt-3">Submit</button>
-			<button id="goBackButton" type="button" class="btn btn-secondary mt-3">Go Back</button>	
-		</div>
+                <div id="todaysRecords">
+                    <h3>Today's Records</h3>
+                    <div id="recordsList" class="mt-3"></div>
+                </div>
+            </div>
+        </div>	
 		
 		<button id="installButton" style="display: none;" class="btn btn-info mt-3">Install App</button>
 		<div id="message" class="mt-3 text-success"></div>
@@ -197,14 +212,6 @@
 
 		});
 
-
-		document.getElementById('searchPageButton').addEventListener('click', () => {
-            document.getElementById('searchPageButton').style.display = 'none';
-            document.getElementById('vehicleForm').style.display = 'none';
-			document.getElementById('todaysCountButton').style.display = 'none';
-            document.getElementById('searchVehicleForm').style.display = 'block';
-        });
-
 		// search code to search vehicles
 		document.getElementById('searchSubmitButton').addEventListener('click', async () => {
 			const vehicleNumber = document.getElementById('searchVehicleNumber').value.trim();
@@ -253,20 +260,8 @@
 
 
 
-		document.getElementById('goBackButton').addEventListener('click', () => {
-            document.getElementById('vehicleForm').style.display = 'block';
-			document.getElementById('searchPageButton').style.display = 'inline-block';
-			document.getElementById('todaysCountButton').style.display = 'block';
-			document.getElementById('searchVehicleForm').style.display = 'none';
-			
-			// Clear any search results
-			document.getElementById('searchResults').innerHTML = '';
-    
-			// Also, make sure the search vehicle input is cleared to reset the form completely
-			document.getElementById('searchVehicleNumber').value = '';
-        });
 
-		document.getElementById('todaysCountButton').addEventListener('click', async () => {
+		document.getElementById('todaysCountTab-tab').addEventListener('click', async () => {
 			const recordsListDiv = document.getElementById('recordsList');
 			recordsListDiv.innerHTML = ''; // Clear previous content
 
@@ -279,69 +274,60 @@
 			table.appendChild(tbody);
 
 			// Table headers
-			const headerRow = document.createElement('tr');
-			['No.', 'Vehicle Number', 'Name', 'Phone Number', 'Date'].forEach(text => {
-				const headerCell = document.createElement('th');
-				headerCell.textContent = text;
-				headerRow.appendChild(headerCell);
-			});
-			thead.appendChild(headerRow);
+			
 
 			const today = new Date();
-			const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString().split('T')[0];
-			const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString().split('T')[0];
+			const dayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString().split('T')[0] + " 00:00";
+			const dayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString().split('T')[0] + " 23:59";
 
-			const vehiclesRef = collection(window.db, "vehicles");
-			const q = query(vehiclesRef, where("date", ">=", startOfDay), where("date", "<=", endOfDay));
+			// Adjust the query as needed based on your date storage format
+			const q = query(collection(window.db, "vehicles"), where("date", ">=", dayStart), where("date", "<=", dayEnd));
 
 			try {
 				const querySnapshot = await getDocs(q);
-				let count = 0;
-				let totalIncome = 0;
-				querySnapshot.forEach(doc => {
-					count++;
-					const data = doc.data();
-					const row = tbody.insertRow();
-					const numberCell = row.insertCell();
-					const vehicleNumberCell = row.insertCell();
-					const nameCell = row.insertCell();
-					const phoneCell = row.insertCell();
-					const dateTimeCell = row.insertCell();
+				if (querySnapshot.empty) {
+					recordsListDiv.textContent = 'No vehicles recorded today.';
+				} else {
+					let count = 0;
+					let totalIncome = 0;
 
-					numberCell.textContent = count;
-					vehicleNumberCell.textContent = data.vehicle_number;
-					nameCell.textContent = data.name;
-					phoneCell.textContent = data.phone_number;
-					dateTimeCell.textContent = data.date;
-				});
+					const headerRow = document.createElement('tr');
+					['No.', 'Vehicle Number', 'Name', 'Phone Number', 'Date'].forEach(text => {
+						const headerCell = document.createElement('th');
+						headerCell.textContent = text;
+						headerRow.appendChild(headerCell);
+					});
+					thead.appendChild(headerRow);
 
-				// Append the table to the recordsListDiv
-				recordsListDiv.appendChild(table);
+					querySnapshot.forEach(doc => {
+						count++;
+						const data = doc.data();
+						const row = tbody.insertRow();
+						const numberCell = row.insertCell();
+						const vehicleNumberCell = row.insertCell();
+						const nameCell = row.insertCell();
+						const phoneCell = row.insertCell();
+						const dateTimeCell = row.insertCell();
 
-				// Display the final count
-				const countDisplay = document.createElement('div');
-				countDisplay.className = 'mt-3'; // Bootstrap margin top class
-				countDisplay.textContent = `Total records for today: ${count}`;
-				recordsListDiv.appendChild(countDisplay);
+						numberCell.textContent = count;
+						vehicleNumberCell.textContent = data.vehicle_number;
+						nameCell.textContent = data.name;
+						phoneCell.textContent = data.phone_number;
+						dateTimeCell.textContent = data.date;
+						});
+						recordsListDiv.appendChild(table);
 
-				// Show the records list and hide the form
-				document.getElementById('vehicleForm').style.display = 'none';
-				document.getElementById('searchPageButton').style.display = 'none';
-				document.getElementById('todaysCountButton').style.display = 'none';
-				document.getElementById('todaysRecords').style.display = 'block';
+						// Display the final count
+						const countDisplay = document.createElement('div');
+						countDisplay.className = 'mt-3'; // Bootstrap margin top class
+						countDisplay.textContent = `Total records for today: ${count}`;
+						recordsListDiv.appendChild(countDisplay);
+					}			
+
 			} catch (error) {
 				console.error("Error fetching documents: ", error);
 			}
 		});
-
-		document.getElementById('backFromTodaysRecordsButton').addEventListener('click', () => {
-			// Hide the records list and show the form
-			document.getElementById('vehicleForm').style.display = 'block';
-			document.getElementById('searchPageButton').style.display = 'block';
-			document.getElementById('todaysCountButton').style.display = 'block';
-			document.getElementById('todaysRecords').style.display = 'none';
-		});
-
 
 	</script>
 
