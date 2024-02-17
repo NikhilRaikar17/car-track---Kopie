@@ -8,6 +8,7 @@
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
 	<link rel="manifest" href="manifest.json">
+	<link rel="stylesheet" href="style.css">
 </head>	
 
 <body>
@@ -18,7 +19,7 @@
 			<h2>Vehicle Tracker</h2>
 		</div>
 
-		<ul class="nav nav-tabs" id="myTab" role="tablist">
+		<ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
             <li class="nav-item">
                 <button class="nav-link active" id="vehicleFormTab-tab" data-bs-toggle="tab" data-bs-target="#vehicleFormTab" type="button" role="tab" aria-controls="vehicleForm" aria-selected="true">Vehicle Form</button>
             </li>
@@ -65,14 +66,24 @@
 				</form>
             </div>
 
-			<div class="tab-pane fade" id="searchVehicleTab" role="tabpanel" aria-labelledby="searchVehicleTab-tab">
-                <!-- Search Vehicle Content Goes Here -->
-                <div class="mt-3" id="searchVehicleForm">
-                    <input type="text" id="searchVehicleNumber" class="form-control" placeholder="Enter Vehicle Number">
-                    <div id="searchResults" class="mt-3"></div>
-                    <button id="searchSubmitButton" type="button" class="btn btn-primary mt-3">Submit</button>
-                </div>
-            </div>
+			<div id="searchVehicleTab" class="tab-pane fade" role="tabpanel" aria-labelledby="searchVehicle-tab">
+				<div class="mt-3">
+					<!-- Search Type Selection -->
+					<div class="mb-3">
+						<select id="searchType" class="form-select">
+							<option value="vehicleNumber">Vehicle Number</option>
+							<option value="phoneNumber">Phone Number</option>
+						</select>
+					</div>
+					<!-- Search Query Input -->
+					<input type="text" id="searchQuery" class="form-control mb-3" placeholder="Enter search query">
+					<!-- Search Button -->
+					<button id="searchSubmitButton" type="button" class="btn btn-primary mb-3">Search</button>
+					<!-- Search Results Display -->
+					<div id="searchResults"></div>
+				</div>
+			</div>
+
 
 			<div class="tab-pane fade" id="todaysCountTab" role="tabpanel" aria-labelledby="todaysCountTab-tab">
 
@@ -214,47 +225,67 @@
 
 		// search code to search vehicles
 		document.getElementById('searchSubmitButton').addEventListener('click', async () => {
-			const vehicleNumber = document.getElementById('searchVehicleNumber').value.trim();
+			const searchType = document.getElementById('searchType').value;
+			const searchQuery = document.getElementById('searchQuery').value.trim();
 			const searchResultsDiv = document.getElementById('searchResults');
+			searchResultsDiv.innerHTML = ''; // Clear previous results
 
-			// Clear previous search results
-			searchResultsDiv.innerHTML = '';
+			// Validate search query
+			if (!searchQuery) {
+				searchResultsDiv.textContent = 'Please enter a search query.';
+				return;
+			}
 
-			if (vehicleNumber) {
-				const vehiclesRef = collection(db, "vehicles");
-				const q = query(vehiclesRef, where("vehicle_number", "==", vehicleNumber));
+			// Firestore query
+			const queryField = searchType === 'vehicleNumber' ? 'vehicle_number' : 'phone_number';
+			try {
+				const q = query(collection(db, "vehicles"), where(queryField, "==", searchQuery));
 				const querySnapshot = await getDocs(q);
 
-				if (!querySnapshot.empty) {
-					// Create the table
+				if (querySnapshot.empty) {
+					searchResultsDiv.textContent = 'No results found.';
+				} else {
+					// Create a table for the results
 					const table = document.createElement('table');
 					table.className = 'table table-bordered'; // Bootstrap classes for styling
+					const thead = document.createElement('thead');
+					const tbody = document.createElement('tbody');
 
-					// Transpose: Each detail of the vehicle becomes a row instead of a column
-					querySnapshot.forEach((doc) => {
-						const vehicle = doc.data();
-						const details = [
-							['Customer Name', vehicle.name],
-							['Phone Number', vehicle.phone_number],
-							['Vehicle Number', vehicle.vehicle_number],
-							['Subscriber', vehicle.subscriber ? 'Yes' : 'No'],
-							['Last Washed On', vehicle.date]
-						];
-
-						details.forEach(detail => {
-							const row = table.insertRow();
-							const cellKey = row.insertCell();
-							const cellValue = row.insertCell();
-							cellKey.textContent = detail[0];
-							cellValue.textContent = detail[1];
-						});
+					// Define table headers
+					const headers = ['Name', 'Vehicle Number', 'Phone Number', 'subscriber', 'Last Washed'];
+					const tr = document.createElement('tr');
+					headers.forEach(headerText => {
+						const th = document.createElement('th');
+						th.textContent = headerText;
+						tr.appendChild(th);
 					});
+					thead.appendChild(tr);
+					table.appendChild(thead);
+
+					// Fill table body with query results
+					querySnapshot.forEach(doc => {
+						const vehicle = doc.data();
+						const row = document.createElement('tr');
+						const cellData = [
+							vehicle.name || 'N/A',
+							vehicle.vehicle_number || 'N/A',
+							vehicle.phone_number || 'N/A',
+							vehicle.subscriber ? 'Yes' : 'No',
+							vehicle.date || 'N/A'
+						];
+						cellData.forEach(text => {
+							const td = document.createElement('td');
+							td.textContent = text;
+							row.appendChild(td);
+						});
+						tbody.appendChild(row);
+					});
+					table.appendChild(tbody);
 					searchResultsDiv.appendChild(table);
-				} else {
-					searchResultsDiv.innerHTML = 'No vehicle found with the provided number.';
 				}
-			} else {
-				searchResultsDiv.innerHTML = 'Please enter a vehicle number to search.';
+			} catch (error) {
+				console.error("Error performing search:", error);
+				searchResultsDiv.textContent = 'Error performing search.';
 			}
 		});
 

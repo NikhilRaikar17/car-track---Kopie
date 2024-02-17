@@ -1,59 +1,24 @@
-body {
-		font-family: Arial, sans-serif;
-		background-color: #f2f2f2;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100vh;
-	}
-
-.message-success {
-    color: green;
-    /* additional styles for success message */
+<style>
+/* Custom styling for the tabs */
+.nav-tabs .nav-link.active {
+    background-color: #007bff; /* Bootstrap primary color */
+    color: #fff;
+    border-color: #007bff #007bff transparent; /* Match the active tab to the border */
 }
 
-.message-error {
-    color: red;
-    /* additional styles for error message */
+.nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    color: #007bff; /* Bootstrap primary color */
+    background-color: #e9ecef; /* Light gray background */
+    margin-right: 2px; /* Spacing between tabs */
 }
 
-
-.form-container {
-	background-color: #f0f119;
-	padding: 20px;
-	border-radius: 8px;
-	box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-	text-align: center;
-	width: 300px;
+/* Styling for the content border and padding */
+.tab-content-bordered {
+    border: 2px solid #007bff; /* Border color matches the active tab */
+    border-radius: .25rem;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow for depth */
 }
-
-h2 {
-	color: #333333;
-	margin-bottom: 20px;
-}
-
-input, select {
-	width: 100%;
-	padding: 10px;
-	margin-bottom: 10px;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-	box-sizing: border-box;
-}
-
-button {
-	width: 100%;
-	padding: 10px;
-	background-color: #4CAF50;
-	color: white;
-	border: none;
-	border-radius: 4px;
-	cursor: pointer;
-	font-size: 16px;
-}
-
-button:hover {
-	background-color: #45a049;
-}
+</style>
